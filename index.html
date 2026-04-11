@@ -275,12 +275,23 @@
   </div>
 </div>
 
+<!-- 游戏设置 -->
+<div class="section">
+  <div class="section-title">⚙️ 游戏设置</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <label style="font-size:13px;color:var(--muted);white-space:nowrap">每手筹码数</label>
+    <input type="number" id="chips-per-hand" placeholder="如 100" min="1" value="100" style="width:90px" oninput="onChipsPerHandChange()">
+    <span style="font-size:12px;color:var(--muted)">买入/追加时填手数，自动换算筹码</span>
+  </div>
+</div>
+
 <!-- 添加玩家 -->
 <div class="section">
   <div class="section-title">➕ 添加玩家</div>
   <div class="add-player-row">
     <input type="text" id="new-name" placeholder="玩家名称" maxlength="10">
-    <input type="number" id="new-chips" placeholder="买入筹码" min="1" value="100">
+    <input type="number" id="new-hands" placeholder="手数" min="1" value="1" style="width:70px" oninput="updateAddPreview()">
+    <span id="new-chips-preview" style="font-size:13px;color:var(--gold);white-space:nowrap;min-width:64px">= 100</span>
     <button class="btn-primary" onclick="addPlayer()">加入</button>
   </div>
 </div>
@@ -350,10 +361,23 @@ let idCounter = 0;
 let saveTimer = null;
 
 function uid() { return ++idCounter; }
+function getChipsPerHand() {
+  return Math.max(1, parseInt(document.getElementById('chips-per-hand').value) || 100);
+}
+function updateAddPreview() {
+  const h = parseInt(document.getElementById('new-hands').value) || 0;
+  const c = getChipsPerHand();
+  document.getElementById('new-chips-preview').textContent = h > 0 ? '= ' + (h * c) : '= 0';
+}
+function onChipsPerHandChange() {
+  updateAddPreview();
+  saveState();
+}
 
 // ── localStorage 持久化 ──────────────────────────
 function saveState() {
-  const state = { players, settled, idCounter, savedAt: Date.now() };
+  const cph = parseInt(document.getElementById('chips-per-hand').value) || 100;
+  const state = { players, settled, idCounter, chipsPerHand: cph, savedAt: Date.now() };
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); showSaveTip(); } catch(e) {}
 }
 function loadState() {
@@ -377,11 +401,13 @@ function restoreGame() {
   const s = loadState();
   if (!s) return;
   players = s.players || []; settled = s.settled || false; idCounter = s.idCounter || 0;
+  if (s.chipsPerHand) document.getElementById('chips-per-hand').value = s.chipsPerHand;
   document.getElementById('restore-bar').style.display = 'none';
   if (settled) {
     document.getElementById('phase-badge').textContent = '已结算';
     document.getElementById('phase-badge').className = 'phase-badge settling';
   }
+  updateAddPreview();
   render();
 }
 function discardRestore() {
@@ -398,21 +424,25 @@ function discardRestore() {
 
 function addPlayer() {
   const nameEl = document.getElementById('new-name');
-  const chipsEl = document.getElementById('new-chips');
+  const handsEl = document.getElementById('new-hands');
   const name = nameEl.value.trim();
-  const chips = parseInt(chipsEl.value);
+  const hands = parseInt(handsEl.value);
+  const cph = getChipsPerHand();
   if (!name) { alert('请输入玩家名称'); return; }
-  if (!chips || chips <= 0) { alert('请输入有效买入筹码'); return; }
+  if (!hands || hands <= 0) { alert('请输入有效手数'); return; }
   if (players.find(p => p.name === name)) { alert('玩家名称重复'); return; }
-
+  const chips = hands * cph;
   players.push({
     id: uid(),
     name,
     totalBuyIn: chips,
     buyCount: 1,
+    buyHands: hands,
     remaining: null
   });
   nameEl.value = '';
+  handsEl.value = '1';
+  updateAddPreview();
   render();
   saveState();
 }
@@ -427,10 +457,13 @@ function removePlayer(id) {
 function buyIn(id) {
   const p = players.find(p => p.id === id);
   const el = document.getElementById('buy-' + id);
-  const chips = parseInt(el.value);
-  if (!chips || chips <= 0) { alert('请输入有效追加筹码'); return; }
+  const hands = parseInt(el.value);
+  const cph = getChipsPerHand();
+  if (!hands || hands <= 0) { alert('请输入有效手数'); return; }
+  const chips = hands * cph;
   p.totalBuyIn += chips;
   p.buyCount++;
+  p.buyHands = (p.buyHands || 0) + hands;
   el.value = '';
   render();
   saveState();
@@ -659,11 +692,13 @@ function render() {
       <div class="player-stats">
         <span>总买入：<b>${p.totalBuyIn}</b></span>
         <span>买入次数：<b>${p.buyCount}</b></span>
+        <span>总手数：<b>${p.buyHands || '-'}</b></span>
         ${hasPnl ? `<span>剩余筹码：<b>${p.remaining}</b></span>` : ''}
       </div>
       ${!settled ? `
       <div class="player-actions">
-        <input type="number" id="buy-${p.id}" class="buy-input" placeholder="追加筹码" min="1">
+        <input type="number" id="buy-${p.id}" class="buy-input" placeholder="手数" min="1" style="width:70px">
+        <span id="buyin-preview-${p.id}" style="font-size:12px;color:var(--gold);min-width:54px"></span>
         <button class="btn-outline" style="font-size:13px" onclick="buyIn(${p.id})">追加买入</button>
       </div>` : ''}
     </div>`;
@@ -672,12 +707,24 @@ function render() {
 
 // 回车添加玩家
 document.getElementById('new-name').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('new-chips').focus();
+  if (e.key === 'Enter') document.getElementById('new-hands').focus();
 });
-document.getElementById('new-chips').addEventListener('keydown', e => {
+document.getElementById('new-hands').addEventListener('keydown', e => {
   if (e.key === 'Enter') addPlayer();
 });
 
+// 追加买入预览实时更新
+document.addEventListener('input', e => {
+  if (e.target && e.target.id && e.target.id.startsWith('buy-')) {
+    const id = parseInt(e.target.id.replace('buy-', ''));
+    const hands = parseInt(e.target.value) || 0;
+    const cph = getChipsPerHand();
+    const preview = document.getElementById('buyin-preview-' + id);
+    if (preview) preview.textContent = hands > 0 ? '= ' + (hands * cph) : '';
+  }
+});
+
+updateAddPreview();
 render();
 </script>
 </body>
