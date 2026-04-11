@@ -278,15 +278,18 @@
       <button class="btn-outline btn-sm" @click="discardRestore">丢弃</button>
     </div>
 
-    <!-- 添加玩家 -->
-    <div class="card">
-      <div class="card-title">➕ 添加玩家</div>
+    <!-- 添加玩家按钮 -->
+    <button class="btn-primary" style="width:100%;margin-bottom:10px;padding:10px" @click="showAddPanel = !showAddPanel">
+      {{ showAddPanel ? '✕ 取消' : '➕ 添加玩家' }}
+    </button>
+    <!-- 展开面板 -->
+    <div class="card" v-if="showAddPanel" style="margin-bottom:10px">
       <div class="row" style="margin-bottom:8px">
         <input v-model="newName" placeholder="玩家名称" maxlength="10" @keydown.enter="$refs.handsInput.focus()" style="flex:1">
         <input ref="handsInput" v-model.number="newHands" type="number" placeholder="手数" min="1" class="w70" @keydown.enter="addPlayer" @input="0">
         <span class="preview-tag">= {{ newHands > 0 ? newHands * chipsPerHand : 0 }}</span>
       </div>
-      <button class="btn-primary" style="width:100%" @click="addPlayer">加入游戏</button>
+      <button class="btn-gold" style="width:100%" @click="addPlayer">确认加入</button>
     </div>
 
     <!-- 玩家列表 -->
@@ -424,9 +427,10 @@ createApp({
     const players = ref([]);
     const settled = ref(false);
     const idCounter = ref(0);
-    const chipsPerHand = ref(100);
+    const chipsPerHand = ref(10000);
     const newName = ref('');
     const newHands = ref(1);
+    const showAddPanel = ref(false);
     const showResult = ref(false);
     const showRestore = ref(false);
     const restoreInfo = ref('');
@@ -516,7 +520,7 @@ createApp({
       players.value = s.players || [];
       settled.value = s.settled || false;
       idCounter.value = s.idCounter || 0;
-      chipsPerHand.value = s.chipsPerHand || 100;
+      chipsPerHand.value = s.chipsPerHand || 10000;
       showRestore.value = false;
     }
     function discardRestore() {
@@ -539,6 +543,7 @@ createApp({
       });
       newName.value = '';
       newHands.value = 1;
+      showAddPanel.value = false;
       saveState();
     }
 
@@ -593,7 +598,7 @@ createApp({
     });
 
     return {
-      tab, players, settled, chipsPerHand, newName, newHands,
+      tab, players, settled, chipsPerHand, newName, newHands, showAddPanel,
       showResult, showRestore, restoreInfo, saveToastVisible,
       totalChips, phaseLabel, isSettling,
       filledTotal, chipDiff, progPct, progClass, checkerState, checkerMsg,
