@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>德州扑克记分</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1a7a4a;
+    --green-light: #25a862;
+    --red: #e53935;
+    --gold: #f5c518;
+    --bg: #0d3b26;
+    --card-bg: #1a2e22;
+    --border: #2e5c3e;
+    --text: #e8f5e9;
+    --muted: #7cb98a;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .subtitle { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+
+  /* 顶部统计 */
+  .stats-bar {
+    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .stat-box {
+    flex: 1; min-width: 100px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .stat-box .val { font-size: 22px; font-weight: 700; color: var(--gold); }
+  .stat-box .label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* 操作区 */
+  .section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 600; color: var(--gold);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .add-player-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+  input[type="text"], input[type="number"] {
+    background: #112918;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 9px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: var(--green-light);
+  }
+  input[type="text"] { flex: 1; }
+  input[type="number"] { width: 90px; }
+  button {
+    border: none; border-radius: 8px; cursor: pointer;
+    font-size: 14px; font-weight: 600; padding: 9px 16px;
+    transition: opacity .2s, transform .1s;
+  }
+  button:active { transform: scale(.96); }
+  .btn-primary { background: var(--green-light); color: #fff; }
+  .btn-danger  { background: var(--red); color: #fff; }
+  .btn-gold    { background: var(--gold); color: #1a2e22; }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* 玩家列表 */
+  .player-list { display: flex; flex-direction: column; gap: 10px; }
+  .player-card {
+    background: #112918;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .player-card.settling { border-color: var(--gold); }
+  .player-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .player-name {
+    flex: 1; font-size: 16px; font-weight: 600;
+  }
+  .player-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: var(--gold);
+    flex-shrink: 0;
+  }
+  .player-stats {
+    display: flex; gap: 12px; font-size: 13px; color: var(--muted);
+    margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .player-stats span b { color: var(--text); }
+  .player-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .buy-input { width: 80px; }
+  .pnl {
+    font-size: 20px; font-weight: 700;
+    padding: 4px 10px; border-radius: 6px;
+  }
+  .pnl.pos { color: #4caf50; background: rgba(76,175,80,.1); }
+  .pnl.neg { color: #ef5350; background: rgba(239,83,80,.1); }
+  .pnl.zero { color: var(--muted); background: rgba(255,255,255,.05); }
+
+  /* 结算区 */
+  .settle-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .settle-row label { flex: 1; font-size: 14px; }
+  .settle-row input { width: 100px; }
+  /* 筹码校验条 */
+  .chip-checker {
+    background: #112918;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .chip-checker.ok  { border-color: #4caf50; }
+  .chip-checker.err { border-color: var(--red); }
+  .checker-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; margin-bottom: 6px;
+  }
+  .checker-row:last-child { margin-bottom: 0; }
+  .checker-label { color: var(--muted); }
+  .checker-val   { font-weight: 700; color: var(--text); }
+  .checker-diff.pos { color: #4caf50; }
+  .checker-diff.neg { color: var(--red); }
+  .checker-diff.zero { color: #4caf50; }
+  .progress-bar {
+    height: 6px; border-radius: 3px;
+    background: var(--border); overflow: hidden; margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 3px;
+    background: var(--green-light);
+    transition: width .2s, background .2s;
+  }
+  .progress-fill.over  { background: var(--red); }
+  .progress-fill.exact { background: #4caf50; }
+  .checker-status {
+    font-size: 12px; margin-top: 6px; font-weight: 600;
+  }
+  .checker-status.ok  { color: #4caf50; }
+  .checker-status.err { color: var(--red); }
+
+  /* 结果弹窗 */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    width: 92%; max-width: 420px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { color: var(--gold); margin-bottom: 16px; text-align: center; font-size: 20px; }
+  .result-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-name { flex: 1; font-size: 15px; }
+  .result-detail { font-size: 12px; color: var(--muted); }
+  .chip-tag {
+    display: inline-block;
+    background: var(--green);
+    color: #fff; font-size: 11px;
+    padding: 2px 7px; border-radius: 10px; margin-left: 6px;
+  }
+  .settle-table {
+    width: 100%; border-collapse: collapse; margin: 12px 0;
+    font-size: 13px;
+  }
+  .settle-table th {
+    color: var(--muted); font-weight: 500; padding: 4px 6px;
+    text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .settle-table td { padding: 6px 6px; }
+  .arrow { color: var(--muted); margin: 0 4px; }
+  .empty { text-align: center; color: var(--muted); padding: 20px; font-size: 14px; }
+
+  .phase-badge {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 10px;
+    font-size: 12px; font-weight: 600;
+    background: var(--green); color: #fff;
+    margin-left: 8px;
+  }
+  .phase-badge.settling { background: var(--gold); color: #1a2e22; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  .save-tip {
+    text-align: center; font-size: 11px; color: var(--muted);
+    margin-top: 10px; padding: 4px;
+    opacity: 0; transition: opacity .5s;
+  }
+  .save-tip.show { opacity: 1; }
+  .restore-bar {
+    background: #1a3d28; border: 1px solid var(--gold);
+    border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 14px; display: flex;
+    align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .restore-bar .info { flex: 1; font-size: 13px; color: var(--text); }
+  .restore-bar .info small { color: var(--muted); display: block; margin-top: 2px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<h1>🃏 德州扑克记分</h1>
+<p class="subtitle">买入 · 追加 · 结算 · 自动存档</p>
+
+<div class="restore-bar" id="restore-bar" style="display:none">
+  <div class="info">
+    🔄 检测到上次的游戏记录
+    <small id="restore-info"></small>
+  </div>
+  <button class="btn-gold" style="padding:7px 14px;font-size:13px" onclick="restoreGame()">恢复</button>
+  <button class="btn-outline" style="padding:7px 14px;font-size:13px" onclick="discardRestore()">丢弃</button>
+</div>
+
+<!-- 顶部统计 -->
+<div class="stats-bar">
+  <div class="stat-box">
+    <div class="val" id="stat-players">0</div>
+    <div class="label">玩家人数</div>
+  </div>
+  <div class="stat-box">
+    <div class="val" id="stat-chips">0</div>
+    <div class="label">桌面总筹码</div>
+  </div>
+  <div class="stat-box">
+    <div class="val" id="stat-buyin">0</div>
+    <div class="label">总买入次数</div>
+  </div>
+</div>
+
+<!-- 添加玩家 -->
+<div class="section">
+  <div class="section-title">➕ 添加玩家</div>
+  <div class="add-player-row">
+    <input type="text" id="new-name" placeholder="玩家名称" maxlength="10">
+    <input type="number" id="new-chips" placeholder="买入筹码" min="1" value="100">
+    <button class="btn-primary" onclick="addPlayer()">加入</button>
+  </div>
+</div>
+
+<!-- 玩家列表 -->
+<div class="section">
+  <div class="section-title">
+    🎮 玩家
+    <span class="phase-badge" id="phase-badge">游戏中</span>
+  </div>
+  <div class="player-list" id="player-list">
+    <div class="empty" id="empty-tip">还没有玩家，先添加吧 👆</div>
+  </div>
+</div>
+
+<!-- 结算区 -->
+<div class="section" id="settle-section" style="display:none">
+  <div class="section-title">🏆 结算 — 输入剩余筹码</div>
+  <!-- 实时筹码校验条 -->
+  <div class="chip-checker" id="chip-checker">
+    <div class="checker-row">
+      <span class="checker-label">桌面总买入</span>
+      <span class="checker-val" id="chk-total">0</span>
+    </div>
+    <div class="checker-row">
+      <span class="checker-label">已填剩余合计</span>
+      <span class="checker-val" id="chk-filled">0</span>
+    </div>
+    <div class="checker-row">
+      <span class="checker-label">差值</span>
+      <span class="checker-val checker-diff zero" id="chk-diff">0</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="chk-progress" style="width:0%"></div>
+    </div>
+    <div class="checker-status" id="chk-status">请填写各玩家剩余筹码</div>
+  </div>
+  <div id="settle-inputs"></div>
+  <div style="display:flex;gap:8px;margin-top:12px;">
+    <button class="btn-gold" style="flex:1" onclick="calcSettle()" id="btn-calc">计算结果</button>
+    <button class="btn-outline" onclick="cancelSettle()">取消</button>
+  </div>
+</div>
+
+<!-- 底部按钮 -->
+<div style="display:flex;gap:10px;margin-top:4px;" id="bottom-btns">
+  <button class="btn-gold" style="flex:1" onclick="startSettle()" id="btn-settle" disabled>结算游戏</button>
+  <button class="btn-outline" onclick="resetGame()">重置</button>
+</div>
+<div class="save-tip" id="save-tip">💾 已自动保存</div>
+
+<!-- 结果弹窗 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>🏆 结算结果</h2>
+    <div id="modal-content"></div>
+    <button class="btn-primary" style="width:100%;margin-top:16px" onclick="closeModal()">关闭</button>
+    <button class="btn-outline" style="width:100%;margin-top:8px" onclick="newGame()">开始新局</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'poker_game_v1';
+let players = [];
+let settled = false;
+let idCounter = 0;
+let saveTimer = null;
+
+function uid() { return ++idCounter; }
+
+// ── localStorage 持久化 ──────────────────────────
+function saveState() {
+  const state = { players, settled, idCounter, savedAt: Date.now() };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); showSaveTip(); } catch(e) {}
+}
+function loadState() {
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+function clearState() { localStorage.removeItem(STORAGE_KEY); }
+function showSaveTip() {
+  const el = document.getElementById('save-tip');
+  el.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+function formatAgo(ts) {
+  const d = Math.floor((Date.now() - ts) / 1000);
+  if (d < 60) return '刚刚';
+  if (d < 3600) return Math.floor(d/60) + ' 分钟前';
+  if (d < 86400) return Math.floor(d/3600) + ' 小时前';
+  return Math.floor(d/86400) + ' 天前';
+}
+function restoreGame() {
+  const s = loadState();
+  if (!s) return;
+  players = s.players || []; settled = s.settled || false; idCounter = s.idCounter || 0;
+  document.getElementById('restore-bar').style.display = 'none';
+  if (settled) {
+    document.getElementById('phase-badge').textContent = '已结算';
+    document.getElementById('phase-badge').className = 'phase-badge settling';
+  }
+  render();
+}
+function discardRestore() {
+  clearState();
+  document.getElementById('restore-bar').style.display = 'none';
+}
+(function checkRestore() {
+  const s = loadState();
+  if (!s || !s.players || s.players.length === 0) return;
+  document.getElementById('restore-info').textContent =
+    s.players.length + ' 位玩家 · 保存于 ' + formatAgo(s.savedAt);
+  document.getElementById('restore-bar').style.display = 'flex';
+})();
+
+function addPlayer() {
+  const nameEl = document.getElementById('new-name');
+  const chipsEl = document.getElementById('new-chips');
+  const name = nameEl.value.trim();
+  const chips = parseInt(chipsEl.value);
+  if (!name) { alert('请输入玩家名称'); return; }
+  if (!chips || chips <= 0) { alert('请输入有效买入筹码'); return; }
+  if (players.find(p => p.name === name)) { alert('玩家名称重复'); return; }
+
+  players.push({
+    id: uid(),
+    name,
+    totalBuyIn: chips,
+    buyCount: 1,
+    remaining: null
+  });
+  nameEl.value = '';
+  render();
+  saveState();
+}
+
+function removePlayer(id) {
+  if (!confirm('确认移除该玩家？')) return;
+  players = players.filter(p => p.id !== id);
+  render();
+  saveState();
+}
+
+function buyIn(id) {
+  const p = players.find(p => p.id === id);
+  const el = document.getElementById('buy-' + id);
+  const chips = parseInt(el.value);
+  if (!chips || chips <= 0) { alert('请输入有效追加筹码'); return; }
+  p.totalBuyIn += chips;
+  p.buyCount++;
+  el.value = '';
+  render();
+  saveState();
+}
+
+function updateChecker() {
+  const total = players.reduce((s, p) => s + p.totalBuyIn, 0);
+  let filled = 0;
+  players.forEach(p => {
+    const el = document.getElementById('remain-' + p.id);
+    if (el) {
+      const v = parseInt(el.value);
+      if (!isNaN(v) && v >= 0) filled += v;
+    }
+  });
+  const diff = filled - total;
+  const pct = total > 0 ? Math.min(filled / total * 100, 120) : 0;
+
+  document.getElementById('chk-total').textContent = total;
+  document.getElementById('chk-filled').textContent = filled;
+
+  const diffEl = document.getElementById('chk-diff');
+  diffEl.textContent = diff === 0 ? '0 ✓' : (diff > 0 ? '+' : '') + diff;
+  diffEl.className = 'checker-val checker-diff ' + (diff === 0 ? 'zero' : diff > 0 ? 'pos' : 'neg');
+
+  const bar = document.getElementById('chk-progress');
+  bar.style.width = pct + '%';
+  bar.className = 'progress-fill' + (diff === 0 ? ' exact' : diff > 0 ? ' over' : '');
+
+  const checker = document.getElementById('chip-checker');
+  const status = document.getElementById('chk-status');
+  const calcBtn = document.getElementById('btn-calc');
+
+  if (diff === 0 && filled > 0) {
+    checker.className = 'chip-checker ok';
+    status.textContent = '✅ 筹码总数匹配，可以结算';
+    status.className = 'checker-status ok';
+    calcBtn.disabled = false;
+  } else if (diff > 0) {
+    checker.className = 'chip-checker err';
+    status.textContent = `⚠️ 多出 ${diff} 筹码，请检查`;
+    status.className = 'checker-status err';
+    calcBtn.disabled = true;
+  } else if (diff < 0) {
+    checker.className = 'chip-checker err';
+    status.textContent = `⚠️ 还差 ${-diff} 筹码未分配`;
+    status.className = 'checker-status err';
+    calcBtn.disabled = true;
+  } else {
+    checker.className = 'chip-checker';
+    status.textContent = '请填写各玩家剩余筹码';
+    status.className = 'checker-status';
+    calcBtn.disabled = true;
+  }
+}
+
+function startSettle() {
+  if (players.length === 0) return;
+  document.getElementById('settle-section').style.display = 'block';
+  document.getElementById('bottom-btns').style.display = 'none';
+  document.getElementById('phase-badge').textContent = '结算中';
+  document.getElementById('phase-badge').className = 'phase-badge settling';
+
+  const total = players.reduce((s, p) => s + p.totalBuyIn, 0);
+  document.getElementById('chk-total').textContent = total;
+  document.getElementById('chk-filled').textContent = '0';
+  document.getElementById('chk-diff').textContent = '0';
+  document.getElementById('chk-progress').style.width = '0%';
+  document.getElementById('chk-status').textContent = '请填写各玩家剩余筹码';
+  document.getElementById('chk-status').className = 'checker-status';
+  document.getElementById('chip-checker').className = 'chip-checker';
+  document.getElementById('btn-calc').disabled = true;
+
+  const container = document.getElementById('settle-inputs');
+  container.innerHTML = players.map(p => `
+    <div class="settle-row">
+      <label>${p.name} <span style="color:var(--muted);font-size:12px">（买入 ${p.totalBuyIn}）</span></label>
+      <input type="number" id="remain-${p.id}" placeholder="剩余筹码" min="0" class="settle-input" oninput="updateChecker()">
+    </div>
+  `).join('');
+  players.forEach(p => {
+    const card = document.getElementById('pcard-' + p.id);
+    if (card) card.classList.add('settling');
+  });
+}
+
+function cancelSettle() {
+  document.getElementById('settle-section').style.display = 'none';
+  document.getElementById('bottom-btns').style.display = 'flex';
+  document.getElementById('phase-badge').textContent = '游戏中';
+  document.getElementById('phase-badge').className = 'phase-badge';
+  players.forEach(p => {
+    const card = document.getElementById('pcard-' + p.id);
+    if (card) card.classList.remove('settling');
+  });
+}
+
+function calcSettle() {
+  // 读取剩余筹码（此时按钮已确保总数匹配才能点击）
+  players.forEach(p => {
+    const val = parseInt(document.getElementById('remain-' + p.id).value);
+    p.remaining = val;
+  });
+  // 计算盈亏
+  players.forEach(p => {
+    p.pnl = p.remaining - p.totalBuyIn;
+  });
+
+  settled = true;
+  showModal();
+  document.getElementById('settle-section').style.display = 'none';
+  document.getElementById('bottom-btns').style.display = 'flex';
+  document.getElementById('phase-badge').textContent = '已结算';
+  document.getElementById('phase-badge').className = 'phase-badge settling';
+  render();
+  saveState();
+}
+
+function showModal() {
+  const sorted = [...players].sort((a, b) => b.pnl - a.pnl);
+  const totalBuyIn = players.reduce((s, p) => s + p.totalBuyIn, 0);
+
+  // 转账建议（赢家收，输家付）
+  const winners = sorted.filter(p => p.pnl > 0);
+  const losers  = sorted.filter(p => p.pnl < 0);
+  let transfers = [];
+  let w = winners.map(p => ({ name: p.name, amount: p.pnl }));
+  let l = losers.map(p => ({ name: p.name, amount: -p.pnl }));
+  let wi = 0, li = 0;
+  while (wi < w.length && li < l.length) {
+    const pay = Math.min(w[wi].amount, l[li].amount);
+    transfers.push({ from: l[li].name, to: w[wi].name, amount: pay });
+    w[wi].amount -= pay;
+    l[li].amount -= pay;
+    if (w[wi].amount === 0) wi++;
+    if (l[li].amount === 0) li++;
+  }
+
+  let html = `
+    <table class="settle-table">
+      <tr>
+        <th>玩家</th><th>买入</th><th>剩余</th><th>盈亏</th>
+      </tr>
+      ${sorted.map((p, i) => `
+        <tr>
+          <td>${i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}${p.name}</td>
+          <td style="color:var(--muted)">${p.totalBuyIn}</td>
+          <td>${p.remaining}</td>
+          <td class="pnl ${p.pnl > 0 ? 'pos' : p.pnl < 0 ? 'neg' : 'zero'}" style="font-size:15px;padding:2px 8px">
+            ${p.pnl > 0 ? '+' : ''}${p.pnl}
+          </td>
+        </tr>
+      `).join('')}
+    </table>
+    <hr class="divider">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px">💸 建议转账</div>
+  `;
+
+  if (transfers.length === 0) {
+    html += `<div style="color:var(--muted);font-size:13px;text-align:center">无需转账（所有人盈亏为零）</div>`;
+  } else {
+    html += transfers.map(t =>
+      `<div style="padding:6px 0;font-size:14px;border-bottom:1px solid var(--border)">
+        <span style="color:#ef5350">${t.from}</span>
+        <span class="arrow">→</span>
+        <span style="color:#4caf50">${t.to}</span>
+        <b style="float:right;color:var(--gold)">${t.amount}</b>
+      </div>`
+    ).join('');
+  }
+
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+function newGame() {
+  closeModal();
+  resetGame();
+}
+
+function resetGame() {
+  if (players.length > 0 && !confirm('确认重置？所有玩家和记录将清空。')) return;
+  players = []; settled = false; idCounter = 0;
+  clearState();
+  document.getElementById('phase-badge').textContent = '游戏中';
+  document.getElementById('phase-badge').className = 'phase-badge';
+  render();
+}
+
+function render() {
+  const listEl = document.getElementById('player-list');
+  const emptyEl = document.getElementById('empty-tip');
+  const settleBtn = document.getElementById('btn-settle');
+
+  document.getElementById('stat-players').textContent = players.length;
+  const totalChips = players.reduce((s, p) => s + p.totalBuyIn, 0);
+  const totalBuys  = players.reduce((s, p) => s + p.buyCount, 0);
+  document.getElementById('stat-chips').textContent = totalChips;
+  document.getElementById('stat-buyin').textContent = totalBuys;
+
+  settleBtn.disabled = players.length < 2;
+
+  if (players.length === 0) {
+    listEl.innerHTML = '<div class="empty" id="empty-tip">还没有玩家，先添加吧 👆</div>';
+    return;
+  }
+
+  listEl.innerHTML = players.map(p => {
+    const initial = p.name.charAt(0).toUpperCase();
+    const hasPnl = p.pnl !== undefined && p.pnl !== null;
+    const pnlHtml = hasPnl
+      ? `<span class="pnl ${p.pnl > 0 ? 'pos' : p.pnl < 0 ? 'neg' : 'zero'}">${p.pnl > 0 ? '+' : ''}${p.pnl}</span>`
+      : '';
+    return `
+    <div class="player-card" id="pcard-${p.id}">
+      <div class="player-header">
+        <div class="player-avatar">${initial}</div>
+        <div class="player-name">${p.name}</div>
+        ${pnlHtml}
+        <button class="btn-danger" style="padding:6px 10px;font-size:12px" onclick="removePlayer(${p.id})">移除</button>
+      </div>
+      <div class="player-stats">
+        <span>总买入：<b>${p.totalBuyIn}</b></span>
+        <span>买入次数：<b>${p.buyCount}</b></span>
+        ${hasPnl ? `<span>剩余筹码：<b>${p.remaining}</b></span>` : ''}
+      </div>
+      ${!settled ? `
+      <div class="player-actions">
+        <input type="number" id="buy-${p.id}" class="buy-input" placeholder="追加筹码" min="1">
+        <button class="btn-outline" style="font-size:13px" onclick="buyIn(${p.id})">追加买入</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// 回车添加玩家
+document.getElementById('new-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('new-chips').focus();
+});
+document.getElementById('new-chips').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addPlayer();
+});
+
+render();
+</script>
+</body>
+</html>
