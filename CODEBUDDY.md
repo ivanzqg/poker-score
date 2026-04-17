@@ -4,23 +4,57 @@ This file provides guidance to CodeBuddy Code when working with code in this rep
 
 ## Project Overview
 
-A client-side poker chip scoring tool (扑克筹码记分板). No backend, no build step — the entire app is a single `index.html` file served as static HTML.
+A client-side poker chip scoring tool (扑克筹码记分板). Two delivery targets from one repository:
+
+1. **`index.html`** — Standalone single-file web app (Vue 3 CDN, no build step)
+2. **`miniprogram/`** — uni-app project that compiles to both H5 and WeChat Mini Program
 
 ## Development
 
-Open `index.html` directly in a browser. No install, build, lint, or test commands exist. There is no `package.json`, no bundler, and no dev server. To preview changes, refresh the browser.
+### Standalone web (`index.html`)
 
-Deployment targets: Vercel, Netlify, GitHub Pages, or any static file host.
+Open `index.html` directly in a browser. No install or build needed.
+
+### uni-app (`miniprogram/`)
+
+```bash
+cd miniprogram
+npm install
+
+# H5 dev server
+npm run dev:h5
+
+# WeChat Mini Program dev build (open dist/dev/mp-weixin in WeChat DevTools)
+npm run dev:mp-weixin
+
+# Production builds
+npm run build:h5
+npm run build:mp-weixin
+```
+
+Requires `sass` as a dev dependency (already in package.json).
 
 ## Architecture
 
-### Single-file structure
+### Standalone web (`index.html`)
 
-Everything lives in `index.html`: HTML template, CSS (`<style>`), and JavaScript (`<script>`). There are no other source files.
+Everything lives in a single file: HTML template, CSS (`<style>`), and JavaScript (`<script>`). Vue 3 loaded via CDN.
 
-### Framework
+### uni-app (`miniprogram/src/`)
 
-Vue 3 loaded via CDN (`unpkg.com/vue@3/dist/vue.global.prod.js`), using the Composition API (`setup()` with `ref`, `computed`, `watch`, `onMounted`). A single `createApp` call mounts the entire app to `#app`.
+Vue 3 Composition API with uni-app framework. Single page (`pages/index/index.vue`) with in-page custom tab bar — not tabBar pages — because all 3 tabs share state heavily.
+
+**Key directories:**
+- `composables/` — State management: `useGameState.js` (core state + mutations), `useSettlement.js` (settlement computed), `useStorage.js` (uni storage wrapper)
+- `components/` — 8 Vue SFC components: TopBar, TabBar, PlayerCard, AddPlayerPanel, SettleChecker, SettleInputRow, ResultModal, RestoreBar
+- `utils/helpers.js` — Pure functions: `formatAgo()`, `calcTransfers()`
+
+**Platform differences from standalone web:**
+- `localStorage` → `uni.setStorageSync` / `uni.getStorageSync`
+- `alert()` / `confirm()` → `uni.showToast()` / `uni.showModal()` (async)
+- HTML elements → uni-app components (`<view>`, `<text>`, `<scroll-view>`)
+- CSS custom properties → SCSS variables (in `uni.scss`)
+- `<table>` → flexbox `<view>` layout
 
 ### UI layout
 
