@@ -34,38 +34,39 @@
     overflow: hidden;
   }
 
-  /* ── 顶栏 ── */
-  .topbar {
+  /* ── 顶部 Header ── */
+  .header {
     flex-shrink: 0;
     background: var(--card);
     border-bottom: 1px solid var(--border);
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
-  .topbar h1 { font-size: 16px; color: var(--gold); flex: 1; letter-spacing: 1px; }
-  .topbar .stats { display: flex; gap: 10px; }
-  .stat { text-align: center; }
-  .stat .v { font-size: 15px; font-weight: 700; color: var(--gold); line-height: 1; }
-  .stat .l { font-size: 10px; color: var(--muted); margin-top: 1px; }
-
-  /* ── Tab 导航 ── */
-  .tabs {
-    flex-shrink: 0;
-    display: flex;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
+  .title-row {
+    text-align: center; padding: 8px 14px 2px;
   }
-  .tab {
-    flex: 1; padding: 9px 4px; text-align: center;
-    font-size: 12px; font-weight: 600; color: var(--muted);
-    cursor: pointer; border-bottom: 2px solid transparent;
-    transition: color .2s, border-color .2s;
-    user-select: none;
+  .title-row h1 { font-size: 17px; color: var(--gold); letter-spacing: 1px; }
+  .status-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; padding: 4px 14px;
   }
-  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-  .tab-icon { font-size: 16px; display: block; margin-bottom: 1px; }
+  .stat { display: flex; align-items: baseline; gap: 3px; }
+  .stat .v { font-size: 14px; font-weight: 700; color: var(--gold); }
+  .stat .l { font-size: 10px; color: var(--muted); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; background: var(--green); color: #fff;
+  }
+  .badge.gold { background: var(--gold); color: #1a2e22; }
+  .action-row {
+    display: flex; gap: 8px; padding: 6px 14px 10px;
+  }
+  .action-btn {
+    flex: 1; text-align: center; padding: 7px 0; border-radius: 8px;
+    background: var(--card2); border: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; color: var(--text);
+    cursor: pointer; user-select: none;
+  }
+  .action-btn.active { background: var(--green); border-color: var(--green-light); }
+  .action-btn.disabled { opacity: 0.4; pointer-events: none; }
 
   /* ── 内容区（可滚动） ── */
   .page {
@@ -73,6 +74,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 12px;
+    padding-bottom: 24px;
   }
 
   /* ── 通用组件 ── */
@@ -83,11 +85,7 @@
     padding: 12px 14px;
     margin-bottom: 10px;
   }
-  .card-title {
-    font-size: 11px; font-weight: 600; color: var(--gold);
-    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
-  }
-  input {
+  input[type="text"], input[type="number"] {
     background: var(--card2);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -100,12 +98,9 @@
   }
   input:focus { border-color: var(--green-light); }
   .row { display: flex; gap: 8px; align-items: center; }
-  .row input { flex: 1; }
-  .row .w70 { width: 70px; flex-shrink: 0; }
-  .row .w80 { width: 80px; flex-shrink: 0; }
   .preview-tag {
     font-size: 12px; color: var(--gold);
-    white-space: nowrap; min-width: 52px; flex-shrink: 0;
+    white-space: nowrap; flex: 1; text-align: right;
   }
   button {
     border: none; border-radius: 8px; cursor: pointer;
@@ -116,10 +111,30 @@
   button:active { transform: scale(.95); }
   .btn-primary { background: var(--green-light); color: #fff; }
   .btn-gold    { background: var(--gold); color: #1a2e22; }
-  .btn-danger  { background: var(--red); color: #fff; padding: 6px 10px; }
+  .btn-danger  { background: var(--red); color: #fff; }
   .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-  .btn-sm      { padding: 6px 10px; font-size: 12px; }
+  .btn-light   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-sm      { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+  .flex1 { flex: 1; }
   button:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* ── Stepper ── */
+  .stepper-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .stepper-label { font-size: 13px; color: var(--muted); flex-shrink: 0; }
+  .stepper {
+    display: flex; align-items: center;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .stepper-btn {
+    width: 36px; height: 32px; display: flex; align-items: center; justify-content: center;
+    background: var(--card2); cursor: pointer; user-select: none;
+    font-size: 18px; color: var(--text); font-weight: 600;
+  }
+  .stepper-btn.disabled { opacity: 0.3; pointer-events: none; }
+  .stepper-val {
+    width: 44px; height: 32px; text-align: center; line-height: 32px;
+    font-size: 15px; font-weight: 700; color: var(--gold); background: var(--card);
+  }
 
   /* ── 玩家卡片 ── */
   .player-card {
@@ -130,26 +145,25 @@
     margin-bottom: 8px;
   }
   .player-card.settling { border-color: var(--gold); }
-  .player-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .player-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
   .avatar {
     width: 32px; height: 32px; border-radius: 50%;
     background: var(--green); display: flex; align-items: center; justify-content: center;
     font-size: 14px; font-weight: 700; color: var(--gold); flex-shrink: 0;
   }
   .pname { flex: 1; font-size: 15px; font-weight: 600; }
-  .pnl {
-    font-size: 16px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
-  }
+  .pnl { font-size: 14px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
   .pnl.pos { color: #4caf50; background: rgba(76,175,80,.12); }
   .pnl.neg { color: #ef5350; background: rgba(239,83,80,.12); }
   .pnl.zero { color: var(--muted); background: rgba(255,255,255,.06); }
   .pstats {
     display: flex; gap: 10px; font-size: 11px; color: var(--muted);
-    margin-bottom: 8px; flex-wrap: wrap;
+    flex-wrap: wrap;
   }
   .pstats b { color: var(--text); }
-  .buyin-row { display: flex; gap: 6px; align-items: center; }
-  .buyin-row input { flex: 1; min-width: 0; }
+  .buyin-panel {
+    margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
+  }
 
   /* ── 结算校验条 ── */
   .checker {
@@ -220,53 +234,47 @@
   .restore-bar .ri { flex: 1; font-size: 12px; }
   .restore-bar .ri small { color: var(--muted); display: block; font-size: 11px; }
 
-  /* ── 存档提示 ── */
-  .save-toast {
-    position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-    background: rgba(37,168,98,.9); color: #fff;
-    padding: 6px 16px; border-radius: 20px; font-size: 12px;
-    pointer-events: none; z-index: 300;
-    transition: opacity .4s;
+  /* ── 操作记录 ── */
+  .log-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
   }
-  .save-toast.hide { opacity: 0; }
+  .log-item:last-child { border-bottom: none; }
+  .log-time { font-size: 12px; color: var(--muted); flex-shrink: 0; font-family: monospace; }
+  .log-text { font-size: 13px; color: var(--text); flex: 1; }
 
   .empty { text-align: center; color: var(--muted); padding: 30px 0; font-size: 13px; }
-  .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 10px;
-    font-size: 11px; font-weight: 600; background: var(--green); color: #fff; margin-left: 6px;
-  }
-  .badge.gold { background: var(--gold); color: #1a2e22; }
   .section-hint { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- 顶栏 -->
-  <div class="topbar">
-    <h1>🃏 扑克筹码
+  <!-- 顶部 Header -->
+  <div class="header">
+    <div class="title-row"><h1>🃏 扑克筹码记分</h1></div>
+    <div class="status-row">
+      <div class="stat"><span class="v">{{ players.length }}</span><span class="l"> 玩家</span></div>
+      <div class="stat"><span class="v">{{ totalChips }}</span><span class="l"> 总筹码</span></div>
       <span class="badge" :class="{ gold: settled }">{{ phaseLabel }}</span>
-    </h1>
-    <div class="stats">
-      <div class="stat"><div class="v">{{ players.length }}</div><div class="l">玩家</div></div>
-      <div class="stat"><div class="v">{{ totalChips }}</div><div class="l">总筹码</div></div>
+    </div>
+    <div class="action-row">
+      <div class="action-btn" :class="{ active: tab === 'game' }" @click="onTabClick('game')">
+        {{ tab === 'game' ? '➕ 添加' : '🎮 玩家' }}
+      </div>
+      <div class="action-btn" :class="{ active: tab === 'settle', disabled: players.length < 2 }" @click="onTabClick('settle')">
+        🏆 结算
+      </div>
+      <div class="action-btn" :class="{ active: tab === 'log' }" @click="onTabClick('log')">
+        📋 记录
+      </div>
+      <div class="action-btn" :class="{ active: tab === 'config' }" @click="onTabClick('config')">
+        ⚙️ 设置
+      </div>
     </div>
   </div>
 
-  <!-- Tab 导航 -->
-  <div class="tabs">
-    <div class="tab" :class="{ active: tab === 'game' }" @click="tab='game'">
-      <span class="tab-icon">🎮</span>游戏
-    </div>
-    <div class="tab" :class="{ active: tab === 'settle' }" @click="tab='settle'" :style="players.length < 2 ? 'opacity:.4;pointer-events:none' : ''">
-      <span class="tab-icon">🏆</span>结算
-    </div>
-    <div class="tab" :class="{ active: tab === 'config' }" @click="tab='config'">
-      <span class="tab-icon">⚙️</span>设置
-    </div>
-  </div>
-
-  <!-- ════════ 游戏 Tab ════════ -->
+  <!-- ════════ 玩家 Tab ════════ -->
   <div class="page" v-show="tab === 'game'">
 
     <!-- 恢复提示 -->
@@ -278,22 +286,26 @@
       <button class="btn-outline btn-sm" @click="discardRestore">丢弃</button>
     </div>
 
-    <!-- 添加玩家按钮 -->
-    <button class="btn-primary" style="width:100%;margin-bottom:10px;padding:10px" @click="showAddPanel = !showAddPanel">
-      {{ showAddPanel ? '✕ 取消' : '➕ 添加玩家' }}
-    </button>
-    <!-- 展开面板 -->
-    <div class="card" v-if="showAddPanel" style="margin-bottom:10px">
-      <div class="row" style="margin-bottom:8px">
-        <input v-model="newName" placeholder="玩家名称" maxlength="10" @keydown.enter="$refs.handsInput.focus()" style="flex:1">
-        <input ref="handsInput" v-model.number="newHands" type="number" placeholder="手数" min="1" class="w70" @keydown.enter="addPlayer" @input="0">
-        <span class="preview-tag">= {{ newHands > 0 ? newHands * chipsPerHand : 0 }}</span>
+    <!-- 添加玩家面板 -->
+    <div class="card" v-if="showAddPanel">
+      <input type="text" v-model="newName" placeholder="玩家名称" maxlength="10" style="margin-bottom:8px">
+      <div class="stepper-row">
+        <span class="stepper-label">买入手数</span>
+        <div class="stepper">
+          <div class="stepper-btn" :class="{ disabled: newHands <= 1 }" @click="newHands > 1 && newHands--">−</div>
+          <div class="stepper-val">{{ newHands }}</div>
+          <div class="stepper-btn" @click="newHands++">+</div>
+        </div>
+        <span class="preview-tag">= {{ newHands * chipsPerHand }}</span>
       </div>
-      <button class="btn-gold" style="width:100%" @click="addPlayer">确认加入</button>
+      <div class="row">
+        <button class="btn-gold flex1" @click="addPlayer">确认加入</button>
+        <button class="btn-outline" @click="showAddPanel = false">取消</button>
+      </div>
     </div>
 
     <!-- 玩家列表 -->
-    <div v-if="players.length === 0" class="empty">还没有玩家，先添加吧 👆</div>
+    <div v-if="players.length === 0 && !showAddPanel" class="empty">还没有玩家，点击上方「添加」开始</div>
     <div v-for="p in players" :key="p.id" class="player-card" :class="{ settling: isSettling }">
       <div class="player-head">
         <div class="avatar">{{ p.name.charAt(0).toUpperCase() }}</div>
@@ -301,7 +313,8 @@
         <span v-if="p.pnl != null" class="pnl" :class="p.pnl > 0 ? 'pos' : p.pnl < 0 ? 'neg' : 'zero'">
           {{ p.pnl > 0 ? '+' : '' }}{{ p.pnl }}
         </span>
-        <button class="btn-danger btn-sm" @click="removePlayer(p.id)">移除</button>
+        <button v-if="!settled" class="btn-primary btn-sm" @click="toggleBuyIn(p)">追加</button>
+        <button class="btn-light btn-sm" @click="removePlayer(p.id)">移除</button>
       </div>
       <div class="pstats">
         <span>买入：<b>{{ p.totalBuyIn }}</b></span>
@@ -309,29 +322,34 @@
         <span>次数：<b>{{ p.buyCount }}</b></span>
         <span v-if="p.remaining != null">剩余：<b>{{ p.remaining }}</b></span>
       </div>
-      <div class="buyin-row" v-if="!settled">
-        <input v-model.number="p.buyInputHands" type="number" placeholder="追加手数" min="1" @input="0">
-        <span class="preview-tag">= {{ p.buyInputHands > 0 ? p.buyInputHands * chipsPerHand : '' }}</span>
-        <button class="btn-outline btn-sm" @click="buyIn(p)">追加买入</button>
+      <!-- 追加买入面板 -->
+      <div class="buyin-panel" v-if="p.showBuyIn && !settled">
+        <div class="stepper-row">
+          <span class="stepper-label">追加手数</span>
+          <div class="stepper">
+            <div class="stepper-btn" :class="{ disabled: (p.buyInputHands || 1) <= 1 }" @click="p.buyInputHands > 1 && p.buyInputHands--">−</div>
+            <div class="stepper-val">{{ p.buyInputHands || 1 }}</div>
+            <div class="stepper-btn" @click="p.buyInputHands = (p.buyInputHands || 1) + 1">+</div>
+          </div>
+          <span class="preview-tag">= {{ (p.buyInputHands || 1) * chipsPerHand }}</span>
+        </div>
+        <div class="row">
+          <button class="btn-gold flex1" @click="buyIn(p)">确认追加</button>
+          <button class="btn-outline" @click="p.showBuyIn = false">取消</button>
+        </div>
       </div>
     </div>
 
     <!-- 底部操作 -->
-    <div class="row" style="margin-top:4px" v-if="!settled">
-      <button class="btn-gold" style="flex:1" :disabled="players.length < 2" @click="tab='settle'">前往结算</button>
-      <button class="btn-outline" @click="resetGame">重置</button>
-    </div>
-    <div class="row" style="margin-top:4px" v-else>
-      <button class="btn-gold" style="flex:1" @click="showResult = true">查看结果</button>
-      <button class="btn-outline" @click="resetGame">新局</button>
+    <div class="row" style="margin-top:4px" v-if="settled">
+      <button class="btn-gold flex1" @click="showResult = true">查看结果</button>
+      <button class="btn-outline" @click="newGame">新局</button>
     </div>
   </div>
 
   <!-- ════════ 结算 Tab ════════ -->
   <div class="page" v-show="tab === 'settle'">
     <div class="card">
-      <div class="card-title">🏆 输入各玩家剩余筹码</div>
-
       <!-- 实时校验条 -->
       <div class="checker" :class="checkerState">
         <div class="checker-row"><span class="cl">桌面总买入</span><span class="cv">{{ totalChips }}</span></div>
@@ -351,12 +369,23 @@
       <!-- 输入行 -->
       <div v-for="p in players" :key="p.id" class="settle-input-row">
         <label>{{ p.name }} <small style="color:var(--muted)">(买入 {{ p.totalBuyIn }})</small></label>
-        <input v-model.number="p.settleInput" type="number" placeholder="剩余筹码" min="0" @input="0">
+        <input type="number" v-model.number="p.settleInput" placeholder="剩余筹码" min="0" @input="0">
       </div>
 
       <div class="row" style="margin-top:10px">
-        <button class="btn-gold" style="flex:1" :disabled="chipDiff !== 0 || filledTotal === 0" @click="calcSettle">计算结果</button>
+        <button class="btn-gold flex1" :disabled="chipDiff !== 0 || filledTotal === 0" @click="calcSettle">计算结果</button>
         <button class="btn-outline" @click="tab='game'">返回</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ 记录 Tab ════════ -->
+  <div class="page" v-show="tab === 'log'">
+    <div class="card">
+      <div v-if="reversedLogs.length === 0" class="empty">暂无操作记录</div>
+      <div v-for="(log, i) in reversedLogs" :key="i" class="log-item">
+        <span class="log-time">{{ formatTime(log.time) }}</span>
+        <span class="log-text">{{ log.text }}</span>
       </div>
     </div>
   </div>
@@ -364,18 +393,16 @@
   <!-- ════════ 设置 Tab ════════ -->
   <div class="page" v-show="tab === 'config'">
     <div class="card">
-      <div class="card-title">⚙️ 游戏设置</div>
       <div class="section-hint">设置每手筹码数，买入和追加时输入手数自动换算</div>
       <div class="row">
         <span style="font-size:13px;color:var(--muted);white-space:nowrap">每手筹码数</span>
-        <input v-model.number="chipsPerHand" type="number" min="1" placeholder="如 100" class="w80" @change="saveState">
+        <input type="number" v-model.number="chipsPerHand" min="1" placeholder="如 100" style="width:80px;flex-shrink:0" @change="saveState">
       </div>
       <div style="margin-top:8px;font-size:12px;color:var(--muted)">
         当前设置：1手 = <b style="color:var(--gold)">{{ chipsPerHand }}</b> 筹码
       </div>
     </div>
     <div class="card">
-      <div class="card-title">🗑️ 危险操作</div>
       <button class="btn-danger" style="width:100%" @click="resetGame">重置当前游戏</button>
     </div>
   </div>
@@ -411,13 +438,10 @@
     </div>
   </div>
 
-  <!-- 存档提示 -->
-  <div class="save-toast" :class="{ hide: !saveToastVisible }">💾 已自动保存</div>
-
 </div>
 
 <script>
-const { createApp, ref, computed, watch, onMounted } = Vue;
+const { createApp, ref, computed, onMounted } = Vue;
 
 const STORAGE_KEY = 'poker_game_v2';
 
@@ -434,8 +458,7 @@ createApp({
     const showResult = ref(false);
     const showRestore = ref(false);
     const restoreInfo = ref('');
-    const saveToastVisible = ref(false);
-    let saveToastTimer = null;
+    const actionLogs = ref([]);
 
     // ── 计算属性 ──
     const totalChips = computed(() => players.value.reduce((s, p) => s + p.totalBuyIn, 0));
@@ -487,6 +510,24 @@ createApp({
       }
       return result;
     });
+    const reversedLogs = computed(() => [...actionLogs.value].reverse());
+
+    // ── 工具函数 ──
+    function formatAgo(ts) {
+      const d = Math.floor((Date.now() - ts) / 1000);
+      if (d < 60) return '刚刚';
+      if (d < 3600) return Math.floor(d/60) + ' 分钟前';
+      if (d < 86400) return Math.floor(d/3600) + ' 小时前';
+      return Math.floor(d/86400) + ' 天前';
+    }
+    function formatTime(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+    function addLog(text) {
+      actionLogs.value.push({ time: Date.now(), text });
+    }
 
     // ── 持久化 ──
     function saveState() {
@@ -495,24 +536,15 @@ createApp({
         settled: settled.value,
         idCounter: idCounter.value,
         chipsPerHand: chipsPerHand.value,
+        actionLogs: actionLogs.value,
         savedAt: Date.now()
       };
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-      saveToastVisible.value = true;
-      clearTimeout(saveToastTimer);
-      saveToastTimer = setTimeout(() => { saveToastVisible.value = false; }, 2000);
     }
     function loadState() {
       try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
     }
     function clearState() { localStorage.removeItem(STORAGE_KEY); }
-    function formatAgo(ts) {
-      const d = Math.floor((Date.now() - ts) / 1000);
-      if (d < 60) return '刚刚';
-      if (d < 3600) return Math.floor(d/60) + ' 分钟前';
-      if (d < 86400) return Math.floor(d/3600) + ' 小时前';
-      return Math.floor(d/86400) + ' 天前';
-    }
 
     function restoreGame() {
       const s = loadState();
@@ -521,11 +553,26 @@ createApp({
       settled.value = s.settled || false;
       idCounter.value = s.idCounter || 0;
       chipsPerHand.value = s.chipsPerHand || 10000;
+      actionLogs.value = s.actionLogs || [];
       showRestore.value = false;
+      addLog('恢复上次游戏');
+      saveState();
     }
     function discardRestore() {
       clearState();
       showRestore.value = false;
+    }
+
+    // ── Tab 切换 ──
+    function onTabClick(t) {
+      if (t === 'game') {
+        if (tab.value === 'game') {
+          showAddPanel.value = !showAddPanel.value;
+        }
+      } else {
+        showAddPanel.value = false;
+      }
+      tab.value = t;
     }
 
     // ── 游戏操作 ──
@@ -539,27 +586,40 @@ createApp({
       players.value.push({
         id: ++idCounter.value, name,
         totalBuyIn: chips, buyCount: 1, buyHands: hands,
-        buyInputHands: null, remaining: null, pnl: null, settleInput: null
+        buyInputHands: 1, showBuyIn: false,
+        remaining: null, pnl: null, settleInput: null
       });
+      addLog(`添加玩家 ${name}，买入 ${chips}（${hands}手）`);
       newName.value = '';
       newHands.value = 1;
       showAddPanel.value = false;
       saveState();
     }
 
+    function toggleBuyIn(p) {
+      p.showBuyIn = !p.showBuyIn;
+      if (p.showBuyIn) p.buyInputHands = 1;
+    }
+
     function removePlayer(id) {
+      const player = players.value.find(p => p.id === id);
       if (!confirm('确认移除该玩家？')) return;
+      const name = player ? player.name : '未知';
       players.value = players.value.filter(p => p.id !== id);
+      addLog(`移除玩家 ${name}`);
       saveState();
     }
 
     function buyIn(p) {
-      const hands = Number(p.buyInputHands);
-      if (!hands || hands <= 0) { alert('请输入有效手数'); return; }
-      p.totalBuyIn += hands * chipsPerHand.value;
+      const hands = Number(p.buyInputHands) || 1;
+      if (hands <= 0) { alert('请输入有效手数'); return; }
+      const chips = hands * chipsPerHand.value;
+      p.totalBuyIn += chips;
       p.buyCount++;
       p.buyHands += hands;
-      p.buyInputHands = null;
+      p.buyInputHands = 1;
+      p.showBuyIn = false;
+      addLog(`${p.name} 追加买入 ${chips}（${hands}手）`);
       saveState();
     }
 
@@ -569,6 +629,7 @@ createApp({
         p.pnl = p.remaining - p.totalBuyIn;
       });
       settled.value = true;
+      addLog('完成结算');
       saveState();
       showResult.value = true;
       tab.value = 'game';
@@ -576,17 +637,23 @@ createApp({
 
     function resetGame() {
       if (players.value.length > 0 && !confirm('确认重置？所有记录将清空。')) return;
+      doReset();
+    }
+
+    function doReset() {
       players.value = [];
       settled.value = false;
       idCounter.value = 0;
       showResult.value = false;
+      showAddPanel.value = false;
+      actionLogs.value = [];
       clearState();
       tab.value = 'game';
     }
 
     function newGame() {
       showResult.value = false;
-      resetGame();
+      doReset();
     }
 
     onMounted(() => {
@@ -599,12 +666,13 @@ createApp({
 
     return {
       tab, players, settled, chipsPerHand, newName, newHands, showAddPanel,
-      showResult, showRestore, restoreInfo, saveToastVisible,
+      showResult, showRestore, restoreInfo, actionLogs, reversedLogs,
       totalChips, phaseLabel, isSettling,
       filledTotal, chipDiff, progPct, progClass, checkerState, checkerMsg,
       sortedPlayers, transfers,
+      formatTime, onTabClick,
       saveState, restoreGame, discardRestore,
-      addPlayer, removePlayer, buyIn, calcSettle, resetGame, newGame
+      addPlayer, toggleBuyIn, removePlayer, buyIn, calcSettle, resetGame, newGame
     };
   }
 }).mount('#app');
